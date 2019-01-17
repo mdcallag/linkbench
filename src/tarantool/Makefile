@@ -10,7 +10,7 @@ linkbench.so: linkbench.c
 		-fPIC
 
 clean:
-	rm -f linkbench.so
+	rm -f *.so
 	rm -rf 51?/ *.vylog *.snap *.xlog *.log
 
 .PHONY: clean

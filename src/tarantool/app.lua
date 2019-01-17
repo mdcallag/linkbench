@@ -13,4 +13,4 @@ box.cfg{
     vinyl_cache = 2 * 1024 * 1024 * 1024;
 }
 
-require('linkbench')
+require('bootstrap')
