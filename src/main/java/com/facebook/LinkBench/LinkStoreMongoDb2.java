@@ -850,16 +850,22 @@ public class LinkStoreMongoDb2 extends GraphStore {
         // Fetch and parse the retrieved node object.
         // TODO: see SERVER-32442 comment above
         Document nodeDoc = nodeCollection.find(query).first();
-        Node node = null;
-        if (nodeDoc != null) {
-            Binary bindata = (Binary) nodeDoc.get("data");
-            byte data[] = bindata.getData();
-            node = new Node(nodeDoc.getLong("_id"),
-                            nodeDoc.getInteger("type"),
-                            nodeDoc.getLong("version"),
-                            nodeDoc.getInteger("time"),
-                            data);
+        if (nodeDoc == null)
+            return null;
+
+        Binary bindata = (Binary) nodeDoc.get("data");
+        byte data[] = bindata.getData();
+        Node node = new Node(nodeDoc.getLong("_id"),
+                             nodeDoc.getInteger("type"),
+                             nodeDoc.getLong("version"),
+                             nodeDoc.getInteger("time"),
+                             data);
+
+        if (node.type != type) {
+            logger.warn("getNode found id=" + id + " with wrong type (" + type + " vs " + node.type);
+            return null;
         }
+
         return node;
     }
 
