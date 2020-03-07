@@ -122,6 +122,8 @@ public abstract class GraphStore extends LinkStore implements NodeStore {
   protected static AtomicInteger retry_add_to_upd = new AtomicInteger(0);
   protected static AtomicInteger retry_upd_to_add = new AtomicInteger(0);
 
+  protected static AtomicInteger commit_failed = new AtomicInteger(0);
+
   public GraphStore() {
     logger = Logger.getLogger();
   }
@@ -176,7 +178,8 @@ public abstract class GraphStore extends LinkStore implements NodeStore {
                 max_add_bulk_counts + " add_bulk_counts");
     logger.info("Graph Link other: " +
                 retry_add_to_upd.get() + " add_to_upd, " +
-                retry_upd_to_add.get() + " upd_to_add");
+                retry_upd_to_add.get() + " upd_to_add, " +
+                commit_failed.get() + " commit_failed");
     logger.info("Graph Node total retry: " +
                 retry_add_node.get() + " add, " +
                 retry_bulk_add_nodes.get() + " add_bulk, " +
