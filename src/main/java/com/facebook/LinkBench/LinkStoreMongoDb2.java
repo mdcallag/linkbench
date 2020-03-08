@@ -316,18 +316,18 @@ public class LinkStoreMongoDb2 extends GraphStore {
     @Override
     public LinkWriteResult addLink(final String dbid, final Link link, final boolean noinverse) {
         logger.debug("addLink " + link.id1 + "." + link.id2 + "." + link.link_type);
-        return newLink(dbid, link, noinverse, retry_add_link, max_add_link, "addLink");
+        return newLink(dbid, link, noinverse, retry_add_link, max_add_link, "addLink", true);
     }
 
     @Override
     public LinkWriteResult updateLink(final String dbid, final Link link, final boolean noinverse) {
         logger.debug("updateLink " + link.id1 + "." + link.id2 + "." + link.link_type);
-        return newLink(dbid, link, noinverse, retry_update_link, max_update_link, "updateLink");
+        return newLink(dbid, link, noinverse, retry_update_link, max_update_link, "updateLink", false);
     }
 
     private LinkWriteResult newLink(final String dbid, final Link link, final boolean noinverse,
                                     AtomicInteger retry_counter, AtomicInteger max_counter,
-                                    final String caller) {
+                                    final String caller, boolean addLink) {
         MongoDatabase database = mongoClient.getDatabase(dbid);
         final MongoCollection<Document> linkCollection = database.getCollection(linktable);
         final MongoCollection<Document> countCollection = database.getCollection(counttable);
@@ -409,7 +409,18 @@ public class LinkStoreMongoDb2 extends GraphStore {
         };
         block = makeTransactional(block);
         block = makeRetryable(block, new AtomicInteger[]{retry_counter, max_counter});
-        return executeCommandBlock(block);
+        LinkWriteResult res = executeCommandBlock(block);
+
+        // Count the cases where addLink does an update and updateLink does an insert
+        if (!addLink) {
+            if (res == LinkWriteResult.LINK_INSERT)
+                retry_upd_to_add.incrementAndGet();
+        } else {
+            if (res != LinkWriteResult.LINK_INSERT)
+                retry_add_to_upd.incrementAndGet();
+        }
+
+        return res;
     }
 
     @Override
@@ -1024,6 +1035,7 @@ public class LinkStoreMongoDb2 extends GraphStore {
      * If there is a retryable exception and and MAX_RETRIES is exceeded, reraise exception.
      *
      * @param task the task to execute.
+     * @param counters global counters for per operation retries
      * @param <T> the return value type.
      * @return the return value from task.call()
      * @see #populateMongoRetryCodes for a list of retryable error codes
