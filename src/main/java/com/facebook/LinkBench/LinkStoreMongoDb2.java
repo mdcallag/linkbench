@@ -796,7 +796,6 @@ public class LinkStoreMongoDb2 extends GraphStore {
      */
     @Override
     public long[] bulkAddNodes(String dbid, final List<Node> nodes) {
-        // TODO: does this need to support retry?
         // TODO: count errors by error code
         MongoDatabase database = mongoClient.getDatabase(dbid);
         final MongoCollection<Document> nodeCollection = database.getCollection(nodetable);
@@ -851,13 +850,27 @@ public class LinkStoreMongoDb2 extends GraphStore {
             nodeId += 1;
         }
 
-        // TODO: should this use ordered=true to make it easier to cleanup on partial inserts?
-        // TODO: should this use a transaction?
-        BulkWriteOptions bulkWriteOptions = new BulkWriteOptions().ordered(false);
-        BulkWriteResult res = nodeCollection.bulkWrite(session, insertOps, bulkWriteOptions);
-        if (res.getInsertedCount() != nodes.size()) {
-            throw new CommandBlockException("'bulkAddNodes' failed to bulk insert all nodes properly.");
-        }
+        CommandBlock<BulkWriteResult> block = new CommandBlock<BulkWriteResult>() {
+
+            @Override
+            public BulkWriteResult call() {
+                BulkWriteOptions bulkWriteOptions = new BulkWriteOptions().ordered(false);
+                BulkWriteResult res = nodeCollection.bulkWrite(session, insertOps, bulkWriteOptions);
+                if (res.getInsertedCount() != nodes.size()) {
+                    throw new CommandBlockException("'bulkAddNodes' failed to bulk insert all nodes properly.");
+                }
+                return res;
+            }
+
+            public String getName() {
+                return "bulkAddNodes";
+            }
+        };
+
+        block = makeTransactional(block);
+        block = makeRetryable(block);
+        executeCommandBlock(block);
+
         return assignedNodeIds;
     }
 
@@ -893,7 +906,6 @@ public class LinkStoreMongoDb2 extends GraphStore {
 
     @Override
     public boolean updateNode(final String dbid, final Node node) {
-        // TODO: does this need to support retry?
         // TODO: count errors by error code
         final MongoDatabase database = mongoClient.getDatabase(dbid);
         final MongoCollection<Document> nodeCollection = database.getCollection(nodetable);
@@ -906,8 +918,25 @@ public class LinkStoreMongoDb2 extends GraphStore {
             set("time", new BsonInt32(node.time)),
             set("data", new BsonBinary(node.data)));
 
-        // Update the node with the specified id.
-        UpdateResult res = nodeCollection.updateOne(pred, nodeUpdate);
+        // This can stop using a transaction when SERVER-44638 is fixed. Until then the
+        // only way to get all writes to use j:false or j:true is to do all in a transaction.
+        CommandBlock<UpdateResult> block = new CommandBlock<UpdateResult>() {
+
+            @Override
+            public UpdateResult call() {
+                // Update the node with the specified id.
+                UpdateResult res = nodeCollection.updateOne(pred, nodeUpdate);
+                return res;
+            }
+
+            public String getName() {
+                return "updateNode";
+            }
+        };
+
+        block = makeTransactional(block);
+        block = makeRetryable(block);
+        UpdateResult res = executeCommandBlock(block);
 
         // Node not found.
         if (res.getMatchedCount() == 0) {
@@ -920,7 +949,6 @@ public class LinkStoreMongoDb2 extends GraphStore {
 
     @Override
     public boolean deleteNode(final String dbid, final int type, final long id) {
-        // TODO: does this need to support retry?
         // TODO: count errors by error code
         final MongoDatabase database = mongoClient.getDatabase(dbid);
         final MongoCollection<Document> nodeCollection = database.getCollection(nodetable);
@@ -928,7 +956,23 @@ public class LinkStoreMongoDb2 extends GraphStore {
         // Only delete the node if the 'id' and 'type' match.
         final Bson pred = and(eq("_id", id), eq("type", type));
 
-        DeleteResult res = nodeCollection.deleteOne(pred);
+        // This can stop using a transaction when SERVER-44638 is fixed. Until then the
+        // only way to get all writes to use j:false or j:true is to do all in a transaction.
+        CommandBlock<DeleteResult> block = new CommandBlock<DeleteResult>() {
+
+            @Override
+            public DeleteResult call() {
+                return nodeCollection.deleteOne(pred);
+            }
+
+            public String getName() {
+                return "deleteNode";
+            }
+        };
+
+        block = makeTransactional(block);
+        block = makeRetryable(block);
+        DeleteResult res = executeCommandBlock(block);
 
         // Return true if the node was deleted, else return false.
         return (res.getDeletedCount() == 1);
