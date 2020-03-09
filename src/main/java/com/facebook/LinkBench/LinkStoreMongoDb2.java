@@ -868,7 +868,7 @@ public class LinkStoreMongoDb2 extends GraphStore {
         };
 
         block = makeTransactional(block);
-        block = makeRetryable(block);
+        block = makeRetryable(block, new AtomicInteger[]{retry_bulk_add_nodes, max_bulk_add_nodes});
         executeCommandBlock(block);
 
         return assignedNodeIds;
@@ -935,7 +935,7 @@ public class LinkStoreMongoDb2 extends GraphStore {
         };
 
         block = makeTransactional(block);
-        block = makeRetryable(block);
+        block = makeRetryable(block, new AtomicInteger[]{retry_update_node, max_update_node});
         UpdateResult res = executeCommandBlock(block);
 
         // Node not found.
@@ -971,7 +971,7 @@ public class LinkStoreMongoDb2 extends GraphStore {
         };
 
         block = makeTransactional(block);
-        block = makeRetryable(block);
+        block = makeRetryable(block, new AtomicInteger[]{retry_delete_node, max_delete_node});
         DeleteResult res = executeCommandBlock(block);
 
         // Return true if the node was deleted, else return false.
