@@ -1,5 +1,13 @@
 /**
  * This is a basic port of LinkStoreMysql to MongoDB. See LinkStoreMongoDb2 for a more optimized version.
+ *
+ * You need to create the following indexes to run this version:
+ *
+ *     use linkdb0
+ *     db.linktable.createIndex({id1: 1, link_type: 1, id2: 1}, {unique: true});
+ *     db.linktable.createIndex({id1: 1, link_type: 1, time: 1, visibility: 1});
+ *     db.counttable.createIndex({id: 1, link_type: 1}, {unique: true});
+ *     db.nodetable.createIndex({id: 1}, {unique: true});
  */
 package com.facebook.LinkBench;
 
