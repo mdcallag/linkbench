@@ -580,6 +580,11 @@ If the _url_ property is set then this value is used to connect to the mongodb. 
 [connection string reference](https://docs.mongodb.com/manual/reference/connection-string/) for the list of supported
 features.
 
+Note that the `replicaSet=replset` parameter
+[is considered required](https://docs.mongodb.com/manual/reference/connection-string/#urioption.replicaSet),
+as Linkbench uses transactions. The value of this parameter must match the replica set name of your MongoDB cluster.
+For sharded clusters this is not used.
+
 #### Host / Port Connection Properties
 
 If the _url_ property is not set, then connection information must be provided through host / port properties:
@@ -612,21 +617,36 @@ For other forms of authentication, please use the __url__ property. See
 [Driver authentication](http://mongodb.github.io/mongo-java-driver/3.6/driver/tutorials/authentication/) for further 
 details.
 
+Available MongoDB implementations
+---------------------------------
+
+There are two different implementations of Linkbench for MongoDB:
+
+**LinkStoreMongoDbBasic** is a straightforward port of the MySQL implementation to MongoDB and was not optimized for
+best performance.
+
+**LinkStoreMongoDb2** uses a more optimized schema and queries.
+
+You can use these from their corresponding configuration files:
+
+* config/LinkConfigMongoDbBasic.properties
+* config/LinkConfigMongoDb2.properties
+
 Loading Data
 ------------
 First we need to do an initial load of data using our config file:
 
-    ./bin/linkbench -c config/LinkConfigMongoDb.properties -l
+    ./bin/linkbench -c config/LinkConfigMongoDb2.properties -l
 
 Request Phase
 -------------
 The next step is to run transactions:
 
-    ./bin/linkbench -c config/LinkConfigMongoDb.properties -r
+    ./bin/linkbench -c config/LinkConfigMongoDb2.properties -r
 
 Running Tests
 -------------
 
 You can use the following to run some / all of the tests:
 
-    $> mvn test -Dtest=**/Mongo* test
+    $> mvn test -P mongodb-tests
