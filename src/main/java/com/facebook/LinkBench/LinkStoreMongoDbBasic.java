@@ -751,7 +751,6 @@ public class LinkStoreMongoDbBasic extends GraphStore {
         }
     }
 
-    // not called anywhere, addLink is called directly in LinkBenchRequest
     @Override
     public LinkWriteResult updateLink(final String dbid, final Link link, final boolean noinverse) {
         return addLink(dbid, link, noinverse);
