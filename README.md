@@ -334,6 +334,37 @@ so on.
                    p75 = [1,2]ms  p95 = [10,11]ms  p99 = [15,16]ms
                    max = 2064.476ms  mean = 2.427ms
 
+Detailed Latency Data
+---------------------
+
+More detailed latency statistics can be measured by the benchmark using HDRHistogram to approximate
+the values of the percentiles at the trade off of higher memory usage.  This can be enabled by
+setting the following options in the config file (all three must be specified):
+
+    # True to enable HDR Histogram, if false or not present, will use default
+    use_hdr_histogram = true
+
+    # Number of significant digits to approximate, must be within 1-5 inclusive
+    hdr_histogram_accuracy = 5
+
+    # A maximum possible latency value to support in microseconds.  If a latency
+    # value outside this range is detected, the test may fail
+    hdr_histogram_max_latency = 100000000
+
+Higher accuracy and maximum latency settings will increase the memory footprint.  This is estimated
+by the library and will be logged in the output logs to aid sizing:
+
+    Creating HDR histogram with 5 significant digits, 100000000 max latency
+    and memory footprint of 207,627,264 bytes
+
+When enabled, this will give approximate values for the latency percentiles in the logs:
+
+    LOAD_COUNTS_BULK count = 11755  p25 = 258057us p50 = 306573us
+                     p75 = 356099us  p95 = 429589us  p99 = 504841us
+                     max = 1221215.000us mean = 308112.241us threads = 21
+
+This data will also replace the data saved in the output csv file.
+
 Advanced LinkBench Command Line Usage
 -------------------------------------
 Here are some further examples of how to use the LinkBench command link utility.

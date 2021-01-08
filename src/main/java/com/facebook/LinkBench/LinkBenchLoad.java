@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.facebook.LinkBench.distributions.ID2Chooser;
 import com.facebook.LinkBench.distributions.LogNormalDistribution;
 import com.facebook.LinkBench.generators.DataGenerator;
+import com.facebook.LinkBench.stats.LatencyHistogram;
 import com.facebook.LinkBench.stats.LatencyStats;
 import com.facebook.LinkBench.stats.SampledStats;
 import com.facebook.LinkBench.util.ClassLoadUtil;
@@ -54,7 +55,7 @@ public class LinkBenchLoad implements Runnable {
   private final LogNormalDistribution linkDataSize;
   private final DataGenerator linkDataGen; // Generate link data
   private SampledStats stats;
-  private LatencyStats latencyStats;
+  private LatencyHistogram latencyStats;
 
   Level debuglevel;
   String dbid;
@@ -97,7 +98,7 @@ public class LinkBenchLoad implements Runnable {
    * @param nloaders
    */
   public LinkBenchLoad(LinkStore store, Properties props,
-      LatencyStats latencyStats, PrintStream csvStreamOut,
+      LatencyHistogram latencyStats, PrintStream csvStreamOut,
       int loaderID, boolean singleAssoc,
       int nloaders, LoadProgress prog_tracker, Random rng) {
     this(store, props, latencyStats, csvStreamOut, loaderID, singleAssoc,
@@ -115,7 +116,7 @@ public class LinkBenchLoad implements Runnable {
 
   public LinkBenchLoad(LinkStore linkStore,
                        Properties props,
-                       LatencyStats latencyStats,
+                       LatencyHistogram latencyStats,
                        PrintStream csvStreamOut,
                        int loaderID,
                        boolean singleAssoc,
@@ -631,7 +632,7 @@ public class LinkBenchLoad implements Runnable {
       long nids = (maxid1 - startid1) * ConfigUtil.getInt(props, Config.DBCOUNT, 1);
       long progressReportInterval = ConfigUtil.getLong(props,
                            Config.LOAD_PROG_INTERVAL, 50000L);
-      boolean nc = false; 
+      boolean nc = false;
       if (props.containsKey(Config.NEVER_CHANGE))
         nc = ConfigUtil.getBool(props, Config.NEVER_CHANGE);
       return new LoadProgress(progressLogger, nids, progressReportInterval, nc);

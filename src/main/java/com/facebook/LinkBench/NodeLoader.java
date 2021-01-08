@@ -23,6 +23,7 @@ import java.util.Random;
 
 import com.facebook.LinkBench.distributions.LogNormalDistribution;
 import com.facebook.LinkBench.generators.DataGenerator;
+import com.facebook.LinkBench.stats.LatencyHistogram;
 import com.facebook.LinkBench.stats.LatencyStats;
 import com.facebook.LinkBench.stats.SampledStats;
 import com.facebook.LinkBench.util.ClassLoadUtil;
@@ -48,7 +49,7 @@ public class NodeLoader implements Runnable {
   private final Level debuglevel;
   private final int loaderId;
   private final SampledStats stats;
-  private final LatencyStats latencyStats;
+  private final LatencyHistogram latencyStats;
 
   private String dbid;
   private String dbprefix;
@@ -73,7 +74,7 @@ public class NodeLoader implements Runnable {
 
   public NodeLoader(Properties props, Logger logger,
       NodeStore nodeStore, Random rng,
-      LatencyStats latencyStats, PrintStream csvStreamOut, int loaderId) {
+      LatencyHistogram latencyStats, PrintStream csvStreamOut, int loaderId) {
     super();
     this.props = props;
     this.logger = logger;

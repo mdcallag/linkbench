@@ -33,7 +33,7 @@ import com.facebook.LinkBench.Level;
  * we have 0.1ms-granularity buckets up to 1ms, then 1ms-granularity from
  * 1-100ms, then 100ms-granularity, and then 1s-granularity.
  */
-public class LatencyStats {
+public class LatencyStats implements LatencyHistogram {
 
   public static int MAX_MILLIS = 100;
 

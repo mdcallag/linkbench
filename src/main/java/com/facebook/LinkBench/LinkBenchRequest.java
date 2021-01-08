@@ -26,6 +26,7 @@ import com.facebook.LinkBench.distributions.ID2Chooser;
 import com.facebook.LinkBench.distributions.LogNormalDistribution;
 import com.facebook.LinkBench.distributions.ProbabilityDistribution;
 import com.facebook.LinkBench.generators.DataGenerator;
+import com.facebook.LinkBench.stats.LatencyHistogram;
 import com.facebook.LinkBench.stats.LatencyStats;
 import com.facebook.LinkBench.stats.SampledStats;
 import com.facebook.LinkBench.util.ClassLoadUtil;
@@ -136,7 +137,7 @@ public class LinkBenchRequest implements Runnable {
 
   // Statistics
   SampledStats stats;
-  LatencyStats latencyStats;
+  LatencyHistogram latencyStats;
 
   // Other informational counters
   long numfound = 0;
@@ -175,7 +176,7 @@ public class LinkBenchRequest implements Runnable {
   public LinkBenchRequest(LinkStore linkStore,
                           NodeStore nodeStore,
                           Properties props,
-                          LatencyStats latencyStats,
+                          LatencyHistogram latencyStats,
                           PrintStream csvStreamOut,
                           RequestProgress progressTracker,
                           Random rng,
@@ -570,7 +571,7 @@ public class LinkBenchRequest implements Runnable {
           wr = linkStore.updateLink(dbid, link, true);
         }
         boolean found = (wr == LinkWriteResult.LINK_NO_CHANGE ||
-                         wr == LinkWriteResult.LINK_UPDATE); 
+                         wr == LinkWriteResult.LINK_UPDATE);
         endtime = System.nanoTime();
         if (Level.TRACE.isGreaterOrEqual(debuglevel)) {
           logger.trace("updateLink id1=" + link.id1 + " link_type="

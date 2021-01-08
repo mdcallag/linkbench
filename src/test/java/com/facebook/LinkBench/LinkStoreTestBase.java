@@ -35,6 +35,7 @@ import com.facebook.LinkBench.distributions.ZipfDistribution;
 import com.facebook.LinkBench.distributions.LinkDistributions.LinkDistMode;
 import com.facebook.LinkBench.distributions.UniformDistribution;
 import com.facebook.LinkBench.generators.UniformDataGenerator;
+import com.facebook.LinkBench.stats.LatencyHistogram;
 import com.facebook.LinkBench.stats.LatencyStats;
 
 /**
@@ -698,7 +699,7 @@ public abstract class LinkStoreTestBase extends TestCase {
       serialLoad(rng, logger, props, getStoreHandle(false));
 
       DummyLinkStore reqStore = getStoreHandle(false);
-      LatencyStats latencyStats = new LatencyStats(1);
+      LatencyHistogram latencyStats = new LatencyStats(1);
       RequestProgress tracker = new RequestProgress(logger, requests, timeLimit, 0, 1000);
 
       statusOut("testRequester: request");
@@ -826,7 +827,7 @@ public abstract class LinkStoreTestBase extends TestCase {
 
       DummyLinkStore reqStore = getStoreHandle(false);
       reqStore.setRangeLimit(rangeLimit); // Small limit for testing
-      LatencyStats latencyStats = new LatencyStats(1);
+      LatencyHistogram latencyStats = new LatencyStats(1);
       LinkBenchRequest requester = new LinkBenchRequest(reqStore, null,
                       props, latencyStats, System.out, tracker, rng, 0, 1);
 
@@ -883,7 +884,7 @@ public abstract class LinkStoreTestBase extends TestCase {
    */
   static void serialLoad(Random rng, Logger logger, Properties props,
       DummyLinkStore store) throws IOException, Exception {
-    LatencyStats latencyStats = new LatencyStats(1);
+    LatencyHistogram latencyStats = new LatencyStats(1);
 
     /* Load up queue with work */
     LinkedBlockingQueue<LoadChunk>  chunk_q = new LinkedBlockingQueue<LoadChunk>();

@@ -18,6 +18,8 @@ package com.facebook.LinkBench;
 import com.facebook.LinkBench.LinkBenchLoad.LoadChunk;
 import com.facebook.LinkBench.LinkBenchLoad.LoadProgress;
 import com.facebook.LinkBench.LinkBenchRequest.RequestProgress;
+import com.facebook.LinkBench.stats.LatencyHistogram;
+import com.facebook.LinkBench.stats.LatencyHistogramFactory;
 import com.facebook.LinkBench.stats.LatencyStats;
 import com.facebook.LinkBench.stats.SampledStats;
 import com.facebook.LinkBench.util.ClassLoadUtil;
@@ -63,6 +65,7 @@ public class LinkBenchDriver {
   private int dbcount;
 
   private final Logger logger = Logger.getLogger();
+  private final LatencyHistogramFactory latencyHistogramFactory = new LatencyHistogramFactory(logger);
 
   LinkBenchDriver(String configfile, Properties
                   overrideProps, String logFile)
@@ -226,7 +229,7 @@ public class LinkBenchDriver {
     boolean genNodes = ConfigUtil.getBool(props, Config.GENERATE_NODES);
     int nTotalLoaders = genNodes ? nLinkLoaders + 1 : nLinkLoaders;
 
-    LatencyStats latencyStats = new LatencyStats(nTotalLoaders);
+    LatencyHistogram latencyStats = latencyHistogramFactory.create(nTotalLoaders, props);
     List<Runnable> loaders = new ArrayList<Runnable>(nTotalLoaders);
 
     LoadProgress loadTracker = LoadProgress.create(logger, props);
@@ -375,7 +378,7 @@ public class LinkBenchDriver {
       logger.info("NO REQUEST PHASE CONFIGURED. ");
       return;
     }
-    LatencyStats latencyStats = new LatencyStats(nrequesters);
+    LatencyHistogram latencyStats = latencyHistogramFactory.create(nrequesters, props);
     List<LinkBenchRequest> requesters = new LinkedList<LinkBenchRequest>();
 
     RequestProgress progress = LinkBenchRequest.createProgress(logger, props);
